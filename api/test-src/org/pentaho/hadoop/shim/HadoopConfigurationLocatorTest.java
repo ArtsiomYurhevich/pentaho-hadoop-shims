@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -46,6 +46,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import static org.junit.Assert.*;
+
 public class HadoopConfigurationLocatorTest {
 
   private static String HADOOP_CONFIGURATIONS_PATH = System.getProperty( "java.io.tmpdir" ) + "/hadoop-configurations";
@@ -61,14 +63,13 @@ public class HadoopConfigurationLocatorTest {
     }
     aConfigFolder.createFolder();
 
-    Assert.assertEquals( FileType.FOLDER, aConfigFolder.getType() );
+    assertEquals( FileType.FOLDER, aConfigFolder.getType() );
 
     // Create the properties file for the configuration as hadoop-configurations/a/config.properties
     configFile = aConfigFolder.resolveFile( "config.properties" );
     Properties p = new Properties();
     p.setProperty( "name", "Test Configuration A" );
     p.setProperty( "classpath", "" );
-    p.setProperty( "ignore.classes", "" );
     p.setProperty( "library.path", "" );
     p.setProperty( "required.classes", HadoopConfigurationLocatorTest.class.getName() );
     p.store( configFile.getContent().getOutputStream(), "Test Configuration A" );
@@ -130,9 +131,9 @@ public class HadoopConfigurationLocatorTest {
         new DefaultFileSystemManager() );
       Assert.fail( "Should have got exception " );
     } catch ( ConfigurationException e ) {
-      Assert.assertEquals(
-        "Unable to load class this.class.does.not.Exist that is required to start the Test Configuration A Hadoop Shim",
-        e.getCause().getMessage() );
+      assertEquals(
+        "Unable to load class this.class.does.not.Exist that is required to start the Test Configuration A Hadoop Shim"
+        , e.getCause().getMessage() );
     } finally {
       properties.setProperty( "required.classes", HadoopConfigurationLocator.class.getName() );
       properties.store( configFile.getContent().getOutputStream(), "Test Configuration A" );
@@ -146,8 +147,8 @@ public class HadoopConfigurationLocatorTest {
       new MockActiveHadoopConfigurationLocator( "a" ),
       new DefaultFileSystemManager() );
 
-    Assert.assertEquals( 1, locator.getConfigurations().size() );
-    Assert.assertEquals( VFS.getManager().resolveFile( HADOOP_CONFIGURATIONS_PATH ).resolveFile( "a" ),
+    assertEquals( 1, locator.getConfigurations().size() );
+    assertEquals( VFS.getManager().resolveFile( HADOOP_CONFIGURATIONS_PATH ).resolveFile( "a" ),
       locator.getConfiguration( "a" ).getLocation() );
   }
 
@@ -158,7 +159,7 @@ public class HadoopConfigurationLocatorTest {
       new MockActiveHadoopConfigurationLocator( "a" ),
       new DefaultFileSystemManager() );
 
-    Assert.assertTrue( locator.hasConfiguration( "a" ) );
+    assertTrue( locator.hasConfiguration( "a" ) );
   }
 
   @Test( expected = RuntimeException.class )
@@ -175,9 +176,9 @@ public class HadoopConfigurationLocatorTest {
       new DefaultFileSystemManager() );
 
     HadoopConfiguration a = locator.getConfiguration( "a" );
-    Assert.assertNotNull( a );
-    Assert.assertEquals( "a", a.getIdentifier() );
-    Assert.assertEquals( "Test Configuration A", a.getName() );
+    assertNotNull( a );
+    assertEquals( "a", a.getIdentifier() );
+    assertEquals( "Test Configuration A", a.getName() );
   }
 
   @Test( expected = ConfigurationException.class )
@@ -210,7 +211,7 @@ public class HadoopConfigurationLocatorTest {
       new DefaultFileSystemManager() );
 
     HadoopConfiguration a = locator.getActiveConfiguration();
-    Assert.assertNotNull( a );
+    assertNotNull( a );
   }
 
 
@@ -238,8 +239,8 @@ public class HadoopConfigurationLocatorTest {
     f.setAccessible( true );
     try {
       String[] usrPaths = (String[]) f.get( null );
-      Assert.assertTrue( Arrays.asList( usrPaths ).contains( "test" ) );
-      Assert.assertTrue( Arrays.asList( usrPaths ).contains( "ing" ) );
+      assertTrue( Arrays.asList( usrPaths ).contains( "test" ) );
+      assertTrue( Arrays.asList( usrPaths ).contains( "ing" ) );
     } finally {
       f.setAccessible( accessible );
     }
@@ -259,9 +260,9 @@ public class HadoopConfigurationLocatorTest {
       int pathCount = usrPaths.length;
       locator.registerNativeLibraryPaths( "ing" );
       usrPaths = (String[]) f.get( null );
-      Assert.assertTrue( Arrays.asList( usrPaths ).contains( "test" ) );
-      Assert.assertTrue( Arrays.asList( usrPaths ).contains( "ing" ) );
-      Assert.assertEquals( pathCount, usrPaths.length );
+      assertTrue( Arrays.asList( usrPaths ).contains( "test" ) );
+      assertTrue( Arrays.asList( usrPaths ).contains( "ing" ) );
+      assertEquals( pathCount, usrPaths.length );
     } finally {
       f.setAccessible( accessible );
     }
@@ -279,18 +280,8 @@ public class HadoopConfigurationLocatorTest {
     // Try to create a configuration based on a file, not a folder
     FileObject buildProperties = VFS.getManager().resolveFile( "ram:///test.file" );
     buildProperties.createFile();
-    Assert.assertEquals( FileType.FILE, buildProperties.getType() );
+    assertEquals( FileType.FILE, buildProperties.getType() );
     locator.createConfigurationLoader( buildProperties, null, null, new ShimProperties() );
-  }
-
-  @Test
-  public void loadHadoopConfiguration_with_ignore_classes() throws Exception {
-    HadoopConfigurationLocator locator = new HadoopConfigurationLocator();
-
-    FileObject root = VFS.getManager().resolveFile( HADOOP_CONFIGURATIONS_PATH + "/a" );
-    HadoopConfiguration configuration = locator.loadHadoopConfiguration( root );
-
-    Assert.assertNotNull( configuration );
   }
 
   @Test
@@ -300,7 +291,7 @@ public class HadoopConfigurationLocatorTest {
     FileObject root = VFS.getManager().resolveFile( HADOOP_CONFIGURATIONS_PATH + "/a" );
     ClassLoader cl = locator.createConfigurationLoader( root, getClass().getClassLoader(), null, new ShimProperties() );
 
-    Assert.assertNotNull( cl.getResource( "config.properties" ) );
+    assertNotNull( cl.getResource( "config.properties" ) );
   }
 
   @Test( expected = ConfigurationException.class )
@@ -320,8 +311,8 @@ public class HadoopConfigurationLocatorTest {
     FileObject root = VFS.getManager().resolveFile( HADOOP_CONFIGURATIONS_PATH );
 
     List<URL> urls = locator.parseURLs( root, "a,b" );
-    Assert.assertEquals( 2, urls.size() );
-    Assert.assertEquals( root.getURL().toURI().resolve( "hadoop-configurations/a/" ), urls.get( 0 ).toURI() );
-    Assert.assertEquals( root.getURL().toURI().resolve( "hadoop-configurations/a/a-config.jar" ), urls.get( 1 ).toURI() );
+    assertEquals( 2, urls.size() );
+    assertEquals( root.getURL().toURI().resolve( "hadoop-configurations/a/" ), urls.get( 0 ).toURI() );
+    assertEquals( root.getURL().toURI().resolve( "hadoop-configurations/a/a-config.jar" ), urls.get( 1 ).toURI() );
   }
 }
